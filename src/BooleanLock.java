@@ -21,7 +21,7 @@ public class BooleanLock implements Lock {
         synchronized (this) {
             while (locked) {
                 blockedList.add(Thread.currentThread());
-                blockedList.wait();
+                this.wait();
             }
             blockedList.remove(Thread.currentThread());
             this.locked = true;
