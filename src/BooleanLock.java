@@ -20,10 +20,19 @@ public class BooleanLock implements Lock {
     public void lock() throws InterruptedException {
         synchronized (this) {
             while (locked) {
-                blockedList.add(Thread.currentThread());
-                this.wait();
+                try {
+                    if(!blockedList.contains(Thread.currentThread())) {
+                        blockedList.add(Thread.currentThread());
+                    }
+                    this.wait();
+                }
+                catch (InterruptedException e) {
+                    blockedList.remove(Thread.currentThread());
+                    throw e;
+                }
             }
             blockedList.remove(Thread.currentThread());
+            blockedList.stream().forEach(f->System.out.println(f));
             this.locked = true;
             this.currentThread = Thread.currentThread();
         }
@@ -40,7 +49,7 @@ public class BooleanLock implements Lock {
                 long endMills = System.currentTimeMillis() + remainMills;
                 while (locked) {
                     if(remainMills <=0 ) {
-                        throw new TimeoutException("can not get the lock during "+remainMills);
+                        throw new TimeoutException(Thread.currentThread().getName()+" can not get the lock during "+remainMills);
                     }
                     if(!blockedList.contains(Thread.currentThread())) {
                         blockedList.add(Thread.currentThread());
